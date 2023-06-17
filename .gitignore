@@ -7,4 +7,3 @@ objects/
 refs/
 package-lock.json
 .lock-waf_linux2_build
-README.md

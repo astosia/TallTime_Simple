@@ -127,18 +127,18 @@ static void get_step_count() {
 
 static void display_step_count() {
   int thousands = s_step_count / 1000;
-  int hundreds = (s_step_count % 1000)/100;
+//  int hundreds = (s_step_count % 1000)/100;
   int hundreds2 = (s_step_count % 1000);
 
   snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
    "%s", "");
 
-  if(thousands > 9) {
+  /*if(thousands > 9) {
       snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
       "%d.%d%s", thousands, hundreds, "k");
   //      "%d,%d", thousands, hundreds2);
   }
-  else if(thousands > 0) {
+  else */if(thousands > 0) {
       snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
   //   "%d.%d%s", thousands, hundreds, "k");
         "%d,%03d", thousands, hundreds2);
