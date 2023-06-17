@@ -8,11 +8,8 @@
 
 //Static and initial vars
 static GFont
-  FontDayOfTheWeekShortName, FontBTQTIcons;//, FontTemp;//, FontWeatherIconsSmall, FontWeatherIconHuge;//, FontTempFore,FontWeatherIconHuge;// FontDate, FontSunset, FontMoonPhase,FontWindDirection;
-
+  FontDayOfTheWeekShortName, FontBTQTIcons;
 FFont* time_font;
-//FFont* time_font_small;
-//FFont* weather_font_massive;
 
 char  citistring[24];
 
@@ -23,15 +20,8 @@ static Layer * s_canvas_weather_section;
 static Layer * s_canvas_bt_icon;
 static Layer * s_canvas_qt_icon;
 Layer * time_area_layer;
-//Layer * weather_area_layer;
 
-//#ifdef PBL_MICROPHONE
-//static Layer * s_canvas_rain;
-
-//static GPath *s_rain_path = NULL;
-//#endif
-
-static int s_hours, s_minutes, s_weekday, s_day, s_month;// last one changed, s_loop;
+static int s_hours, s_minutes, s_weekday, s_day, s_month;
 
 //////Init Configuration///
 //Init Clay
@@ -77,12 +67,7 @@ static void prv_default_settings(){
 
 bool BTOn=true;
 bool GPSOn=true;
-
 bool IsNightNow=false;
-//int showWeather = 0;
-//int s_countdown = 0;
-//int s_loop = 0;
-
 
 static GColor ColorSelect(GColor ColorDay, GColor ColorNight){
   if (settings.NightTheme && IsNightNow && GPSOn){
@@ -162,7 +147,6 @@ static void display_step_count() {
     snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
       "%d", hundreds2);
   }
-//  layer_set_text(s_step_layer, s_current_steps_buffer);
 
 }
 
@@ -176,7 +160,6 @@ static void health_handler(HealthEventType event, void *context) {
 
 
 void layer_update_proc_background (Layer * back_layer, GContext * ctx){
-  // Create Rects
 
   GRect bounds = layer_get_bounds(back_layer);
   GRect ComplicationsBand =
@@ -297,9 +280,8 @@ static void layer_update_proc_zero(Layer * layer, GContext * ctx){
   strcat(battperc, "%");
 
   // Draw the battery bar & divider bar backgrounds
-  graphics_context_set_fill_color(ctx, ColorSelect(settings.FrameColor2,settings.FrameColor2N));// GColorBlack);
+  graphics_context_set_fill_color(ctx, ColorSelect(settings.FrameColor2,settings.FrameColor2N));
   graphics_fill_rect(ctx, BatteryRect, 0, GCornerNone);
-//  graphics_fill_rect(ctx, VerticalDividerRect, 0, GCornerNone);
 
   // Draw the battery bar
   graphics_context_set_fill_color(ctx, ColorSelect(settings.Text6Color,settings.Text6ColorN));
@@ -333,7 +315,7 @@ static void layer_update_proc_zero(Layer * layer, GContext * ctx){
   if (!settings.HealthOff && step_data_is_available())
     {
       char daydate[18];
-      snprintf(daydate, sizeof (daydate), " %s %s %d", s_current_steps_buffer, datedraw,daydraw);
+      snprintf(daydate, sizeof (daydate), "%s", s_current_steps_buffer);
       graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color,settings.Text3ColorN));
       graphics_draw_text(ctx, daydate, FontDayOfTheWeekShortName, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
 
@@ -392,11 +374,7 @@ static void prv_save_settings(){
 }
 // Handle the response from AppMessage
 static void prv_inbox_received_handler(DictionaryIterator * iter, void * context){
-//  s_loop = s_loop + 1;
-//  APP_LOG(APP_LOG_LEVEL_DEBUG, "prv_inbox_received_handler s_loop is %d",s_loop);
-
   //  Colours
-
   Tuple * sd1_color_t = dict_find(iter, MESSAGE_KEY_FrameColor2);
   if (sd1_color_t){
     settings.FrameColor2 = GColorFromHEX(sd1_color_t-> value -> int32);
@@ -540,12 +518,8 @@ if (tx10_color_t){
 settings.Text10Color = GColorFromHEX(tx10_color_t-> value -> int32);
 }
 
-// Weather conditions
 
-    //Hour Sunrise and Sunset
-
-  //Control of data gathered for http
-
+  //config data
 
   Tuple * disntheme_t = dict_find(iter, MESSAGE_KEY_NightTheme);
   if (disntheme_t){
@@ -608,8 +582,6 @@ settings.Text10Color = GColorFromHEX(tx10_color_t-> value -> int32);
 
   layer_mark_dirty(s_canvas_weather_section);
   layer_mark_dirty(time_area_layer);
-  //layer_mark_dirty(weather_area_layer);
-  //layer_mark_dirty(s_canvas_rain);
   layer_mark_dirty(s_canvas_bt_icon);
   layer_mark_dirty(s_canvas_qt_icon);
   layer_mark_dirty(s_canvas_background);
@@ -648,24 +620,13 @@ static void window_unload(Window * window){
   layer_destroy (s_canvas_background);
   layer_destroy(s_canvas_weather_section);
   layer_destroy(time_area_layer);
-//  layer_destroy(weather_area_layer);
- //#ifdef PBL_MICROPHONE
-//  layer_destroy(s_canvas_rain);
-//#endif
   layer_destroy(s_canvas_bt_icon);
   layer_destroy(s_canvas_qt_icon);
   window_destroy(s_window);
 
   ffont_destroy(time_font);
-//  ffont_destroy(time_font_small);
-//  ffont_destroy(weather_font_massive);
   fonts_unload_custom_font(FontDayOfTheWeekShortName);
   fonts_unload_custom_font(FontBTQTIcons);
-//  fonts_unload_custom_font(FontTemp);
-//  fonts_unload_custom_font(FontTempFore);
-//  fonts_unload_custom_font(FontWeatherIconsSmall);
-//  fonts_unload_custom_font(FontWeatherIconHuge);
-  //fonts_unload_custom_font(FontWeatherIconHuge);
 
 }
 
@@ -693,12 +654,9 @@ static void tick_handler(struct tm * time_now, TimeUnits changed){
   main_window_update(time_now -> tm_hour, time_now -> tm_min, time_now -> tm_wday, time_now -> tm_mday, time_now -> tm_mon);
   //update_time();
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Tick at %d", time_now -> tm_min);
-  //s_loop = 0;
-  //onreconnection(BTOn, connection_service_peek_pebble_app_connection());
 
   bluetooth_callback(connection_service_peek_pebble_app_connection());
-
- }
+}
 
 static void init(){
 
@@ -722,7 +680,6 @@ static void init(){
   time_font =  ffont_create_from_resource(RESOURCE_ID_FFONT_ERETCOM);
   FontDayOfTheWeekShortName = fonts_load_custom_font(resource_get_handle(PBL_IF_ROUND_ELSE(RESOURCE_ID_ERET_36, RESOURCE_ID_ERET_36)));
   FontBTQTIcons = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_DRIPICONS_16));
-//  FontTemp = fonts_load_custom_font(resource_get_handle(PBL_IF_ROUND_ELSE(RESOURCE_ID_ERET_36, RESOURCE_ID_ERET_36)));
 
   main_window_push();
   // Register with Event Services
@@ -732,7 +689,6 @@ static void init(){
       health_service_events_subscribe(health_handler,NULL);
       APP_LOG(APP_LOG_LEVEL_DEBUG, "health is on, and steps data is subscribed");
     }
-
 
   connection_service_subscribe((ConnectionHandlers){
     .pebble_app_connection_handler = bluetooth_vibe_icon

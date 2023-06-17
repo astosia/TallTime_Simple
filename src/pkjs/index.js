@@ -13,7 +13,7 @@ var xhrRequest = function (url, type, callback) {
 };
 
 function getinfo() {
-  // Get keys from pmkey
+
   var settings4 = JSON.parse(localStorage.getItem('clay-settings')) || {};
 
   }
