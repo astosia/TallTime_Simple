@@ -127,26 +127,43 @@ static void get_step_count() {
 
 static void display_step_count() {
   int thousands = s_step_count / 1000;
-//  int hundreds = (s_step_count % 1000)/100;
+  int hundreds = (s_step_count % 1000)/100;
   int hundreds2 = (s_step_count % 1000);
 
   snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
    "%s", "");
-
-  /*if(thousands > 9) {
-      snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-      "%d.%d%s", thousands, hundreds, "k");
-  //      "%d,%d", thousands, hundreds2);
-  }
-  else */if(thousands > 0) {
-      snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-  //   "%d.%d%s", thousands, hundreds, "k");
-        "%d,%03d", thousands, hundreds2);
-  }
-  else {
+#ifdef PBL_ROUND
+if(thousands > 9) {
     snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
-      "%d", hundreds2);
-  }
+    "%d.%d%s", thousands, hundreds, "k");
+//      "%d,%d", thousands, hundreds2);
+}
+else if(thousands > 0) {
+    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
+//   "%d.%d%s", thousands, hundreds, "k");
+      "%d,%03d", thousands, hundreds2);
+}
+else {
+  snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
+    "%d", hundreds2);
+}
+#else
+/*if(thousands > 9) {
+    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
+    "%d.%d%s", thousands, hundreds, "k");
+//      "%d,%d", thousands, hundreds2);
+}
+else */if(thousands > 0) {
+    snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
+//   "%d.%d%s", thousands, hundreds, "k");
+      "%d,%03d", thousands, hundreds2);
+}
+else {
+  snprintf(s_current_steps_buffer, sizeof(s_current_steps_buffer),
+    "%d", hundreds2);
+}
+#endif
+
 
 }
 
@@ -169,7 +186,7 @@ void layer_update_proc_background (Layer * back_layer, GContext * ctx){
 
   GRect TimeBand =
     PBL_IF_ROUND_ELSE(
-      GRect(0, 0, bounds.size.w, 144),
+      GRect(0, 29, bounds.size.w, 180-(29*2)),
       GRect(0, 0, bounds.size.w, 144));
       graphics_context_set_fill_color(ctx, ColorSelect(settings.FrameColor, settings.FrameColorN));
       graphics_fill_rect(ctx, ComplicationsBand,0,GCornersAll);
@@ -195,7 +212,7 @@ void update_time_area_layer(Layer *l, GContext* ctx) {
   fctx_set_fill_color(&fctx, ColorSelect(settings.HourColor, settings.HourColorN));
  #ifdef PBL_ROUND
     //int font_size = bounds.size.h * 0.55;
-    int font_size = 172;
+    int font_size = 146;
    #elif PBL_PLATFORM_APLITE
     //int font_size = bounds.size.h * 0.65;
     int font_size = 172;
@@ -245,7 +262,7 @@ void update_time_area_layer(Layer *l, GContext* ctx) {
     snprintf(timedraw, sizeof(timedraw), "%s:%s",hourdraw,minnow);
 
     time_pos.x = INT_TO_FIXED(PBL_IF_ROUND_ELSE(90, 72) + h_adjust);
-    time_pos.y = INT_TO_FIXED(PBL_IF_ROUND_ELSE(6, 6)  + v_adjust);
+    time_pos.y = INT_TO_FIXED(PBL_IF_ROUND_ELSE(32, 6)  + v_adjust);
 
     fctx_set_offset(&fctx, time_pos);
     fctx_draw_string(&fctx, timedraw, time_font, GTextAlignmentCenter, FTextAnchorTop);
@@ -259,20 +276,20 @@ static void layer_update_proc_zero(Layer * layer, GContext * ctx){
 //draw battery on all layers
   GRect BatteryRect =
     (PBL_IF_ROUND_ELSE(
-      GRect(0,144,180,2),
+      GRect(24,22+5,180-(24*2),2),
       GRect(0,0,144,3)));
 
   int s_battery_level = battery_state_service_peek().charge_percent;
 
     #ifdef PBL_ROUND
-      int width_round = (s_battery_level * 180) / 100;
+      int width_round = (s_battery_level * (180-(24*2))) / 100;
     #else
       int width_rect = (s_battery_level * 144) / 100;
     #endif
 
   GRect BatteryFillRect =
       (PBL_IF_ROUND_ELSE(
-        GRect(18,144,width_round,2),
+        GRect(24,22+5,width_round,2),
         GRect(0,0,width_rect,3)));
 
   char battperc[6];
@@ -289,10 +306,54 @@ static void layer_update_proc_zero(Layer * layer, GContext * ctx){
 
 //show date
 
+  #ifdef PBL_ROUND
   GRect DayofWeekRect =
-  (PBL_IF_ROUND_ELSE(
-      GRect(0+2, 132, 98, 36),
-      GRect(0+2, 130, 72*2, 36)));
+      GRect(0, 0-11, 180, 36);
+
+  GRect DateMonthRect =
+    GRect(0, 144-7, 180, 36);
+      //Date
+      // Local language
+      const char * sys_locale = i18n_get_system_locale();
+      char datedraw[10];
+      fetchwday(s_weekday, sys_locale, datedraw);
+      char datenow[10];
+      snprintf(datenow, sizeof(datenow), "%s", datedraw);
+
+      graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color,settings.Text3ColorN));
+      graphics_draw_text(ctx, datedraw, FontDayOfTheWeekShortName, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
+
+      int daydraw;
+      daydraw = s_day;
+      char daynow[8];
+      snprintf(daynow, sizeof(daynow), "%d", daydraw);
+
+      char monthdraw[10];
+      fetchmonth(s_month, sys_locale, monthdraw);
+      char monthnow[10];
+      snprintf(monthnow, sizeof(monthnow), "%s", monthdraw);
+
+  if (!settings.HealthOff && step_data_is_available())
+    {
+      char daydate[18];
+      snprintf(daydate, sizeof (daydate), "%s", s_current_steps_buffer);
+      graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color,settings.Text3ColorN));
+      graphics_draw_text(ctx, daydate, FontDayOfTheWeekShortName, DateMonthRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
+
+    }
+    else{
+      char daydate[18];
+      snprintf(daydate, sizeof (daydate), "%d %s", daydraw, monthdraw);
+      graphics_context_set_text_color(ctx, ColorSelect(settings.Text3Color,settings.Text3ColorN));
+      graphics_draw_text(ctx, daydate, FontDayOfTheWeekShortName, DateMonthRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
+
+    }
+
+
+
+  #else
+  GRect DayofWeekRect =
+        GRect(0+2, 130, 72*2, 36);
 
       //Date
       // Local language
@@ -327,6 +388,8 @@ static void layer_update_proc_zero(Layer * layer, GContext * ctx){
       graphics_draw_text(ctx, daydate, FontDayOfTheWeekShortName, DayofWeekRect, GTextOverflowModeWordWrap, PBL_IF_ROUND_ELSE(GTextAlignmentCenter,GTextAlignmentCenter), NULL);
 
     }
+  #endif
+
   }
 
 
@@ -334,7 +397,7 @@ static void layer_update_proc_bt(Layer * layer3, GContext * ctx3){
 
     GRect BTIconRect =
     (PBL_IF_ROUND_ELSE(
-      GRect(90,4,24,20),
+      GRect(152,90-8,24,20),
       GRect(144-47,168-20,47,20)));
 
  graphics_context_set_text_color(ctx3, ColorSelect(settings.Text5Color, settings.Text5ColorN));
@@ -347,7 +410,7 @@ static void layer_update_proc_qt(Layer * layer4, GContext * ctx4){
 
   GRect QTIconRect =
     (PBL_IF_ROUND_ELSE(
-      GRect(90-24,4,24,20),
+      GRect(4,90-8,24,20),
       GRect(0,168-20,47,20)));
 
  quiet_time_icon();
