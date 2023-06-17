@@ -1,0 +1,10 @@
+#ignore build files & other stuff
+node_modules/
+Screenshots/
+build/
+resources/images/
+objects/
+refs/
+package-lock.json
+.lock-waf_linux2_build
+README.md
